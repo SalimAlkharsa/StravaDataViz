@@ -4,7 +4,7 @@ import numpy as np
 
 def calculate_metrics():
     """
-    Calculates advanced performance metrics from the raw activity and stream data.
+    Calculates advanced performance metrics and includes activity type.
     """
     try:
         activities_df = pd.read_csv('data/activities.csv')
@@ -55,36 +55,25 @@ def calculate_metrics():
             continue
 
         # --- Metric Calculations ---
-        # Cardiac Drift
         hr_first_half_avg = first_half['heartrate'].mean()
         hr_second_half_avg = second_half['heartrate'].mean()
-        # Use velocity_smooth, convert to pace (s/m)
         pace_first_half_avg = (1 / first_half['velocity_smooth'].mean()) if first_half['velocity_smooth'].mean() > 0 else 0
         pace_second_half_avg = (1 / second_half['velocity_smooth'].mean()) if second_half['velocity_smooth'].mean() > 0 else 0
 
         if hr_first_half_avg > 0 and pace_first_half_avg > 0 and pace_second_half_avg > 0:
-            cardiac_drift = (hr_second_half_avg / hr_first_half_avg) / (pace_first_half_avg / pace_second_half_avg) # Inverted pace ratio for correct drift
+            cardiac_drift = (hr_second_half_avg / hr_first_half_avg) / (pace_first_half_avg / pace_second_half_avg)
         else:
             cardiac_drift = np.nan
 
-        # Heart Rate Zone Analysis
         activity_streams['hr_zone'] = activity_streams['heartrate'].apply(get_zone)
-        zone_distribution = activity_streams['hr_zone'].value_counts(normalize=True).to_dict()
-
-        # Zone Transitions
+        zone_time = activity_streams['hr_zone'].value_counts().to_dict()
         activity_streams['zone_shifted'] = activity_streams['hr_zone'].shift() != activity_streams['hr_zone']
         zone_transitions = activity_streams['zone_shifted'].sum()
 
-        # Split-based metrics function
         def calculate_split_metrics(split_df):
-            if split_df.empty:
-                return {'avg_speed_hr_efficiency': np.nan, 'hr_std_dev': np.nan}
-            
+            if split_df.empty: return {'avg_speed_hr_efficiency': np.nan, 'hr_std_dev': np.nan}
             split_df_filtered = split_df[(split_df['heartrate'] > 0) & (split_df['velocity_smooth'] > 0)]
-
-            if split_df_filtered.empty:
-                return {'avg_speed_hr_efficiency': np.nan, 'hr_std_dev': np.nan}
-
+            if split_df_filtered.empty: return {'avg_speed_hr_efficiency': np.nan, 'hr_std_dev': np.nan}
             split_df_filtered['speed_hr_efficiency'] = split_df_filtered['velocity_smooth'] / split_df_filtered['heartrate']
             return {
                 'avg_speed_hr_efficiency': split_df_filtered['speed_hr_efficiency'].mean(),
@@ -97,18 +86,18 @@ def calculate_metrics():
         metrics_data.append({
             'activity_id': activity_id,
             'activity_name': activity_details['name'],
+            'activity_type': activity_details['type'], # Added activity type
             'activity_start_date': activity_details['start_date'],
             'cardiac_drift': cardiac_drift,
             'zone_transitions': zone_transitions,
-            **{f'zone_{k.replace(" ", "_").replace("(", "").replace(")", "").replace("%", "")}_dist': v for k, v in zone_distribution.items()},
+            **{f'zone_time_{k.replace(" ", "_").replace("(", "").replace(")", "").replace("%", "")}': v for k, v in zone_time.items()},
             **{f'first_half_{k}': v for k, v in first_half_metrics.items()},
             **{f'second_half_{k}': v for k, v in second_half_metrics.items()}
         })
 
     if metrics_data:
         metrics_df = pd.DataFrame(metrics_data)
-        # Fill NaN for missing zones to ensure consistent columns
-        all_zone_keys = [f'zone_Zone_{i}_{p1}-{p2}_dist' for i, (p1, p2) in enumerate([(50,60),(60,70),(70,80),(80,90),(90,100)], 1)]
+        all_zone_keys = [f'zone_time_Zone_{i}_{p1}-{p2}' for i, (p1, p2) in enumerate([(50,60),(60,70),(70,80),(80,90),(90,100)], 1)]
         for key in all_zone_keys:
             if key not in metrics_df.columns:
                 metrics_df[key] = 0
