@@ -22,8 +22,8 @@ def calculate_metrics():
             return None
         if hr < 0.6 * max_hr:
             return 'Zone 1 (50-60%)'
-        elif hr < 0.7 * max_hr:
-            return 'Zone 2 (60-70%)'
+        elif hr < 0.725 * max_hr:
+            return 'Zone 2 (60-72.5%)'
         elif hr < 0.8 * max_hr:
             return 'Zone 3 (70-80%)'
         elif hr < 0.9 * max_hr:
@@ -97,7 +97,7 @@ def calculate_metrics():
 
     if metrics_data:
         metrics_df = pd.DataFrame(metrics_data)
-        all_zone_keys = [f'zone_time_Zone_{i}_{p1}-{p2}' for i, (p1, p2) in enumerate([(50,60),(60,70),(70,80),(80,90),(90,100)], 1)]
+        all_zone_keys = [f'zone_time_Zone_{i}_{p1}-{p2}' for i, (p1, p2) in enumerate([(50,60),(60,72_5),(72_5,80),(80,90),(90,100)], 1)]
         for key in all_zone_keys:
             if key not in metrics_df.columns:
                 metrics_df[key] = 0
