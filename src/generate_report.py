@@ -50,19 +50,19 @@ def generate_report():
         plot_filenames = []
 
         # --- Plot Generation for each activity type ---
-        # Plot 1: Pace vs. HR Efficiency
+        # Plot 1: Efficiency Factor
         plt.figure(figsize=(11, 6))
-        plt.plot(activity_df['activity_display_date'], activity_df['first_half_avg_speed_hr_efficiency'], marker='o', linestyle='--', label='First Half')
-        plt.plot(activity_df['activity_display_date'], activity_df['second_half_avg_speed_hr_efficiency'], marker='o', linestyle='-', label='Second Half')
-        plt.title(f'{display_activity_type} - Pace vs. HR Efficiency')
-        plt.xlabel('Date'); plt.ylabel('Speed / Heart Rate'); plt.xticks(rotation=45, ha='right'); plt.grid(True); plt.legend(); plt.tight_layout()
+        plt.plot(activity_df['activity_display_date'], activity_df['first_half_avg_efficiency_factor'], marker='o', linestyle='--', label='First Half')
+        plt.plot(activity_df['activity_display_date'], activity_df['second_half_avg_efficiency_factor'], marker='o', linestyle='-', label='Second Half')
+        plt.title(f'{display_activity_type} - Efficiency Factor')
+        plt.xlabel('Date'); plt.ylabel('Efficiency Factor'); plt.xticks(rotation=45, ha='right'); plt.grid(True); plt.legend(); plt.tight_layout()
         filename = f'reports/{display_activity_type}_1.png'
         plt.savefig(filename); plot_filenames.append(filename); plt.close()
 
         # Plot 2: Cardiac Drift
         plt.figure(figsize=(11, 6))
         plt.plot(activity_df['activity_display_date'], activity_df['cardiac_drift'], marker='o', color='r', label='Cardiac Drift')
-        plt.axhline(y=1.05, color='gray', linestyle='--', label='Acceptable Drift Ceiling (1.05)')
+        plt.axhline(y=5, color='gray', linestyle='--', label='Acceptable Drift Ceiling (5%)')
         plt.title(f'{display_activity_type} - Cardiac Drift'); plt.xlabel('Date'); plt.ylabel('Cardiac Drift Ratio'); plt.xticks(rotation=45, ha='right'); plt.grid(True); plt.legend(); plt.tight_layout()
         filename = f'reports/{display_activity_type}_2.png'
         plt.savefig(filename); plot_filenames.append(filename); plt.close()
