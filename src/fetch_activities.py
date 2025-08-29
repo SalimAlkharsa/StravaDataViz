@@ -1,6 +1,7 @@
 
 import os
 import pandas as pd
+import pytz
 from dotenv import load_dotenv
 from stravalib.client import Client
 
@@ -22,8 +23,14 @@ def fetch_activities():
 
     activities = client.get_activities()
 
+    # Set the target timezone
+    central = pytz.timezone('US/Central')
+
     data = []
     for activity in activities:
+        # Convert start_date to US/Central timezone
+        start_date_central = activity.start_date.astimezone(central)
+
         data.append({
             'id': activity.id,
             'name': activity.name,
@@ -32,7 +39,7 @@ def fetch_activities():
             'elapsed_time': activity.elapsed_time,
             'total_elevation_gain': activity.total_elevation_gain,
             'type': activity.type,
-            'start_date': activity.start_date,
+            'start_date': start_date_central,
             'average_speed': activity.average_speed,
             'average_heartrate': activity.average_heartrate,
             'max_heartrate': activity.max_heartrate,

@@ -15,7 +15,7 @@ def generate_report():
         return
 
     # --- Data Preparation ---
-    metrics_df['activity_start_date'] = pd.to_datetime(metrics_df['activity_start_date'])
+    metrics_df['activity_start_date'] = pd.to_datetime(metrics_df['activity_start_date']).dt.tz_convert('US/Central')
     metrics_df = metrics_df.sort_values(by='activity_start_date')
 
     # --- PDF Generation ---
