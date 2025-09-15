@@ -27,14 +27,40 @@ def generate_report():
     
     activity_types = metrics_df['activity_type'].unique().tolist()
     
-    # Custom sort order: Run, then Ride, then others alphabetically
-    custom_order = ['Run', 'Ride']
+    # Custom sort order: Run, then Long Run, then others alphabetically, with Ride last.
+    custom_order = ['Run', 'Long Run']
+    
+    # Get unique activity types and sort them
+    activity_types = metrics_df['activity_type'].unique().tolist()
+    
     sorted_activity_types = []
     for atype in custom_order:
         if atype in activity_types:
             sorted_activity_types.append(atype)
             activity_types.remove(atype)
-    sorted_activity_types.extend(sorted(activity_types))
+    
+    # Add remaining activity types alphabetically, except for Ride
+    for atype in sorted(activity_types):
+        if atype != 'Ride':
+            sorted_activity_types.append(atype)
+    
+    # Add Ride at the end if it exists
+    if 'Ride' in activity_types:
+        sorted_activity_types.append('Ride')
+
+    # Separate long runs for special processing
+    long_run_df = metrics_df[(metrics_df['is_long_run'] == True) & (metrics_df['activity_type'] == 'Run')].copy()
+    if not long_run_df.empty:
+        # Add a synthetic 'Long Run' type to be processed like other activities
+        if 'Long Run' not in sorted_activity_types:
+            # Insert 'Long Run' after 'Run' if it's not already in the custom order
+            if 'Run' in sorted_activity_types:
+                run_index = sorted_activity_types.index('Run')
+                sorted_activity_types.insert(run_index + 1, 'Long Run')
+            else:
+                sorted_activity_types.insert(0, 'Long Run')
+        # Temporarily modify the DataFrame to treat these as a separate activity type
+        metrics_df.loc[long_run_df.index, 'activity_type'] = 'Long Run'
 
     for activity_type in sorted_activity_types:
         pdf.add_page()

@@ -91,6 +91,7 @@ def calculate_metrics():
             'activity_name': activity_details['name'],
             'activity_type': activity_details['type'],
             'activity_start_date': activity_details['start_date'],
+            'is_long_run': activity_details['elapsed_time'] > 3600,
             'cardiac_drift': cardiac_drift,
             'zone_transitions': zone_transitions,
             **{f'zone_time_{k.replace(" ", "_").replace("(", "").replace(")", "").replace("%", "")}': v for k, v in zone_time.items()},
